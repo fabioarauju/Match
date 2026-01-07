@@ -139,7 +139,7 @@ st.markdown("""
     
     /* Botão de download */
     .stDownloadButton > button {
-        background: linear-gradient(135deg, #292727 0%, #800c0f 100%);
+        background: linear-gradient(135deg, #800c0f 0%, #e1a125 100%);
         color: white !important;
         font-weight: bold;
         border-radius: 8px;
