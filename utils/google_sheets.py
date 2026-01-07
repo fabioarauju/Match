@@ -3,15 +3,17 @@ Módulo de conexão com Google Sheets
 """
 
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 import pandas as pd
 import streamlit as st
+import os
 
 
 @st.cache_resource
 def conectar_google_sheets():
     """
     Conecta com Google Sheets usando as credenciais
+    Compatível com Streamlit Cloud (secrets) e desenvolvimento local
     Returns: cliente gspread autenticado
     """
     try:
@@ -20,24 +22,44 @@ def conectar_google_sheets():
             'https://www.googleapis.com/auth/drive'
         ]
         
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            'credentials.json', 
-            scope
-        )
+        credentials = None
+        
+        # Tentar usar Streamlit Secrets (Cloud)
+        try:
+            # Verificar se secrets existe E tem gcp_service_account
+            if hasattr(st, 'secrets') and 'gcp_service_account' in st.secrets:
+                credentials_dict = dict(st.secrets['gcp_service_account'])
+                credentials = Credentials.from_service_account_info(
+                    credentials_dict,
+                    scopes=scope
+                )
+        except Exception:
+            # Se falhar, tentar arquivo local
+            pass
+        
+        # Se não conseguiu credenciais do Cloud, usar arquivo local
+        if credentials is None:
+            credentials_path = 'credentials.json'
+            
+            if not os.path.exists(credentials_path):
+                st.error("❌ Arquivo credentials.json não encontrado!")
+                st.info(f"💡 Procurando em: {os.path.abspath(credentials_path)}")
+                return None
+            
+            credentials = Credentials.from_service_account_file(
+                credentials_path,
+                scopes=scope
+            )
         
         client = gspread.authorize(credentials)
         return client
-    
-    except FileNotFoundError:
-        st.error("❌ Arquivo credentials.json não encontrado!")
-        return None
     
     except Exception as e:
         st.error(f"❌ Erro ao conectar: {str(e)}")
         return None
 
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=300, show_spinner=False)
 def carregar_planilha(nome_ou_url_ou_id, aba=0):
     """
     Carrega dados de uma planilha do Google Sheets
