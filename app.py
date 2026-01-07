@@ -4,19 +4,20 @@ Aplicação Streamlit com Identidade Visual Personalizada
 """
 
 import streamlit as st
+
+# Configuração da página (SEMPRE PRIMEIRO)
+st.set_page_config(
+    page_title="Sistema de Match",
+    page_icon="🎯",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Imports pesados DEPOIS do set_page_config
 import pandas as pd
 import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
-import subprocess
-import sys
-
-# TEMPORÁRIO: Instalar gspread manualmente
-try:
-    import gspread
-except ImportError:
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "gspread==5.12.3", "oauth2client==4.1.3"])
-    import gspread
 
 # Importar módulos
 from utils.dicionarios import (
